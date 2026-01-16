@@ -1,0 +1,307 @@
+
+from datetime import datetime
+import getpass
+import asyncio,webbrowser
+import time,os
+import importlib.util, os, time
+import json
+import sys
+import asyncio
+from telethon import TelegramClient, events
+from telethon.sessions import StringSession
+from telethon import TelegramClient
+from telethon.tl.functions.account import ReportPeerRequest
+from telethon.tl.types import (
+    InputReportReasonSpam,
+    InputReportReasonFake,
+    InputReportReasonViolence,
+    InputReportReasonPornography,
+    InputReportReasonChildAbuse,
+    InputReportReasonCopyright,
+    InputReportReasonIllegalDrugs,
+    InputReportReasonPersonalDetails,
+    InputReportReasonOther
+)
+
+RESET = "\033[0m"
+BOLD = "\033[1m"
+CYAN = "\033[96m"
+GREEN = "\033[92m"
+RED = "\033[91m"
+YELLOW = "\033[93m"
+MAGENTA = "\033[95m"
+
+Crazy_CHANNEL = "https://t.me/Pokie_Tools"
+credits = "Report TOOL By Crazy | @PokiePy"
+
+
+def clear():
+    print("\033c", end="")
+
+def menu():
+    print(f"""{CYAN}
+[1]  Report User
+[2]  Report Channel
+[3]  Report Group
+[4]  Report Bot
+[5]  Report Specific Post
+[0]  Exit
+{RESET}""")
+
+def show_reasons():
+    print(f"{YELLOW}Select Report Reason:{RESET}")
+    for k, v in REPORT_REASONS.items():
+        print(f"{k}. {v[0]}")
+
+def get_int(msg, min_v=None, max_v=None):
+    while True:
+        try:
+            v = input(msg).strip()
+            if v.lower() in ["exit", "quit", "0"]:
+                return None
+            v = int(v)
+            if min_v and v < min_v:
+                continue
+            if max_v and v > max_v:
+                continue
+            return v
+        except:
+            print(f"{RED}Invalid{RESET}")
+
+def get_str(msg):
+    v = input(msg).strip()
+    if v.lower() in ["exit", "quit", "0"]:
+        return None
+    return v
+def premium_banner():
+
+            clear()
+            X=(__import__('pyfiglet').figlet_format('Tg report',font='slant'))
+            print(f'{CYAN}{X}')
+            
+            print(f'\n{GREEN}                       By Crazy | @PokiePy')
+            print('')
+            print('')
+            
+
+correct = "crazy"
+os.system('clear')
+premium_banner()
+
+print(f"══════════════════════════════════════════════{RESET}")
+print('')
+pwd = getpass.getpass("🔐 Enter password : ")
+if pwd != correct:
+    print("❌ Invalid Password !! Good check Password On channel first")
+    webbrowser.open(Crazy_CHANNEL)
+    sys.exit()
+print("Loading....")
+REPORT_REASONS = {
+    1: ("Spam", InputReportReasonSpam()),
+    2: ("Fake Account", InputReportReasonFake()),
+    3: ("Violence", InputReportReasonViolence()),
+    4: ("Pornography", InputReportReasonPornography()),
+    5: ("Child Abuse", InputReportReasonChildAbuse()),
+    6: ("Copyright", InputReportReasonCopyright()),
+    7: ("Illegal Drugs", InputReportReasonIllegalDrugs()),
+    8: ("Personal Data Leak", InputReportReasonPersonalDetails()),
+    9: ("Other", InputReportReasonOther())
+}
+
+
+async def report_entity(client, label):
+    target = get_str(f"Enter {label} (@username): ")
+    if not target:
+        return
+    if not target.startswith("@"):
+        target = "@" + target
+    try:
+        entity = await client.get_entity(target)
+        show_reasons()
+        reason = get_int("Reason (1-9) : ", 1, 9)
+        count = get_int("Reports Count : ")
+        for i in range(count):
+            await client(ReportPeerRequest(
+                peer=entity,
+                reason=REPORT_REASONS[reason][1],
+                message=f"Reported via {credits}"
+            ))
+            print(f"{GREEN}Report {i+1}/{count}{RESET}")
+            await asyncio.sleep(2)
+    except Exception as e:
+        print(f"{RED}{e}{RESET}")
+
+async def report_post(client):
+    link = get_str("Post link: ")
+    if not link or "t.me/" not in link:
+        return
+    try:
+        username, msg_id = link.replace("https://t.me/", "").split("/")
+        channel = await client.get_entity(username)
+        show_reasons()
+        reason = get_int("Reason (1-9) : ", 1, 9)
+        count = get_int("Reports Count : ")
+        for i in range(count):
+            await client(ReportPeerRequest(
+                peer=channel,
+                reason=REPORT_REASONS[reason][1],
+                message=f"Reported post {msg_id} via {credits}"
+            ))
+            print(f"{GREEN}Report {i+1}/{count}{RESET}")
+            await asyncio.sleep(2)
+    except Exception as e:
+        print(f"{RED}{e}{RESET}")
+
+
+
+
+
+
+
+if sys.platform == 'linux' and 'ANDROID_ROOT' in os.environ:
+    try:
+        import uvloop
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    except ImportError:
+        pass
+
+
+try:
+    loop = asyncio.get_event_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+
+SESSION_FILE = "session.txt"
+
+
+muted_users = set()
+blocked_users = set()
+
+
+def save_session(session_string):
+    with open(SESSION_FILE, "w") as f:
+        f.write(session_string)
+
+
+def load_session():
+    if os.path.exists(SESSION_FILE):
+        with open(SESSION_FILE, "r") as f:
+            return f.read().strip()
+    return None
+
+
+async def create_new_session():
+    print("🔐 No valid session found. Creating new session...")
+    
+    if os.path.exists("config.json"):
+        with open("config.json", "r") as f:
+            config = json.load(f)
+            api_id = config.get("api_id")
+            api_hash = config.get("api_hash")
+    else:
+        print("📝 Please enter your API credentials:")
+        api_id = 28220488
+        api_hash = "211f500bb29e5eb47ea908c4f6b4e6cf"
+        with open("config.json", "w") as f:
+            json.dump({"api_id": api_id, "api_hash": api_hash}, f)
+
+    client = TelegramClient(StringSession(), api_id, api_hash)
+
+    await client.start()
+    session_string = client.session.save()
+    save_session(session_string)
+    
+    print(f"✅ Session created and saved to {SESSION_FILE}")
+    print(f"📋 Session String: {session_string}")
+    
+    return client, session_string
+
+async def initialize_client():
+    session_string = load_session()
+    
+    if session_string:
+        try:
+            
+            if os.path.exists("config.json"):
+                with open("config.json", "r") as f:
+                    config = json.load(f)
+                    api_id = config.get("api_id")
+                    api_hash = config.get("api_hash")
+            else:
+                
+                print("📝 Please enter your API credentials:")
+                api_id = 28220488
+                api_hash = "211f500bb29e5eb47ea908c4f6b4e6cf"
+                
+                with open("config.json", "w") as f:
+                    json.dump({"api_id": api_id, "api_hash": api_hash}, f)
+            
+            client = TelegramClient(StringSession(session_string), api_id, api_hash)
+            
+            await client.connect()
+            
+            if not await client.is_user_authorized():
+                print("⚠️ Session expired. Creating new session...")
+                os.remove(SESSION_FILE)
+                client, session_string = await create_new_session()
+            else:
+                print("✅ Session loaded successfully!")
+            
+            return client
+            
+        except Exception as e:
+            print(f"❌ Error loading session: {str(e)}")
+            print("🔄 Creating new session...")
+            os.remove(SESSION_FILE)
+            client, session_string = await create_new_session()
+            return client
+    else:
+        client, session_string = await create_new_session()
+        return client
+
+async def setup():
+    global client
+    client = await initialize_client()
+    os.system('clear')
+    while True:
+        os.system('clear')
+        premium_banner()
+        menu()
+        c = get_int("Select : ", 0, 5)
+        if not c:
+            break
+        if c == 5:
+            await report_post(client)
+        else:
+            labels = {1:"User",2:"Channel",3:"Group",4:"Bot"}
+            await report_entity(client, labels[c])
+    await client.disconnect()
+
+
+
+def start_bot():
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    try:
+        loop.run_until_complete(setup())
+    except KeyboardInterrupt:
+        print("\n👋 Bot stopped by user")
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+
+if __name__ == '__main__':
+    start_bot()
+
+
+#By Crazy | @PokiePy
+#Channel @Pokie_Tools / @Pokie_files
+
+
+
+
